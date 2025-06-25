@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <script>
+    const hexToBytes = (hex) => {
+      const bytes = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+      }
+      return bytes;
+    };
+
+    const key = hexToBytes("943b421c9eb07c830af81030552c86009268de4e532ba2ee2eab8247c6da0881");
+    const salt = hexToBytes("520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5");
+
+    async function sign(path) {
+      const encoder = new TextEncoder();
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        key,
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+
+      const full = new Uint8Array([...salt, ...encoder.encode(path)]);
+      const signature = await crypto.subtle.sign("HMAC", cryptoKey, full);
+
+      return (
+        "/" +
+        btoa(String.fromCharCode(...new Uint8Array(signature)))
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "") +
+        path
+      );
+    }
+
+    window.addEventListener("message", async (event) => {
+      const allowedOrigins = ["http://localhost:3000"];
+      if (!allowedOrigins.includes(event.origin)) return;
+
+      const { path } = event.data;
+      if (!path) return;
+
+      const signedUrl = await sign(path);
+      event.source.postMessage(
+        { type: "signed-imgproxy-url", url: signedUrl },
+        event.origin
+      );
+    });
+  </script>
+</body>
+
+</html>

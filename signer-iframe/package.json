@@ -1,0 +1,17 @@
+{
+  "name": "signer-iframe",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
+  },
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1",
+    "webpack-obfuscator": "^3.5.1"
+  }
+}

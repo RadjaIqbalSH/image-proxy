@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+    imgproxy:
+        image: darthsim/imgproxy:latest
+        container_name: imgproxy
+        volumes:
+            - imgproxy_data:/mnt/data
+        ports:
+            - "8080:8080"
+        restart: unless-stopped
+        env_file:
+            - ./img-proxy/.env
+
+    nginx-proxy:
+        image: nginx:stable-alpine
+        container_name: nginx-proxy
+        depends_on:
+            - imgproxy
+        ports:
+            - "8081:8081"
+        volumes:
+            - ./nginx-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+        restart: unless-stopped
+    nginx-cdn:
+        image: nginx:stable-alpine
+        container_name: nginx-cdn
+        depends_on:
+            - nginx-proxy
+        ports:
+            - "80:80"
+        volumes:
+            - ./nginx-cdn/nginx.conf:/etc/nginx/nginx.conf:ro
+            - nginx_cdn_cache:/var/cache/nginx/nginx_cdn_cache
+        restart: unless-stopped
+
+volumes:
+    nginx_cdn_cache:
+    imgproxy_data:
